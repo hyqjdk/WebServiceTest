@@ -11,19 +11,84 @@ from scripts.base_account_data import Accounts
 
 class Context:
     """获取测试数据参数化类"""
-    not_exist_tel_pattern = r'\$\{not_exist_tel\}'
-    exist_tel_pattern = r'\$\{exist_tel\}'
-    exist_id_pattern = r'\$\{exist_id\}'
-    # 管理员号码
-    admin_user_tel = r'\$\{admin_user_tel\}'
-    # 借款人号码
-    borrow_user_tel = r'\$\{borrow_user_id\}'
-    # 投资人id
-    invest_user_id = r'\$\{invest_user_id\}'
-    # 投资人密码
-    invest_user_pwd = r'\$\{invest_user_pwd\}'
-    # loan_id
-    loan_id = r'\$\{loan_id\}'
+    # 获取验证码
+    code_db_id = r'\$\{db_id\}' # 哪个数据库下
+    code_table_id = r'\$\{table_id\}' # 哪个table下的
+    register_phone = r'\$\{register_phone\}'
+
+    # 验证码
+    verify_code = r'\$\{verify_code\}'
+    #select Fverify_code from sms_db_${db_id}.t_mvcode_info_${table_id} WHERE Fmobile_no = ${register_phone}
+
+    @classmethod
+    def verify_code_replace(cls, pattern_data):
+        """
+         替换验证码
+        :param pattern_data: 传入的所有数据
+        :return:
+        """
+        if re.search(cls.verify_code, pattern_data):
+            verify_code = getattr(Context, "verify_code")
+            pattern_data = re.sub(cls.verify_code, verify_code, pattern_data)
+        return pattern_data
+
+    @classmethod
+    def sendMCode_parameterization(cls, mobile_phone, data):
+        """
+        替换
+        :param mobile_phone: 手机号
+        :param data: 原始数据
+        :return:
+        """
+        if re.search(cls.code_db_id, data):
+            data = re.sub(cls.code_db_id, mobile_phone., data)
+        if re.search(cls.invest_user_pwd, data):
+            invest_pwd = Accounts.invest_pwd
+            data = re.sub(cls.invest_user_pwd, invest_pwd, data)
+        return data
+        return data
+
+    @classmethod
+    def register_parameterization(cls, data):
+        """
+        注册部分参数化
+        :param data: 原始数据
+        :return:
+        """
+        data = cls.verify_code_replace(data)
+        data = cls.exist_tel_replace(data)
+        return data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @classmethod
     def not_exist_tel_replace(cls, data):

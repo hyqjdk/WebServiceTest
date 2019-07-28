@@ -16,12 +16,12 @@ from suds.client import WebFault
 # 获取用例数据列表
 handle_excel = HandleExcel()
 excel = handle_excel.get_exist_excel(DATA_FILE_PATH)
-cases = handle_excel.get_cases("send_msg")
+cases = handle_excel.get_cases("register")
 
 
 @ddt
-class TestSendMCode(unittest.TestCase):
-    """发送验证码接口测试"""
+class TestUnRegister(unittest.TestCase):
+    """注册接口测试"""
 
     @classmethod
     def setUpClass(cls):
@@ -32,17 +32,17 @@ class TestSendMCode(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.my_excel.save_list_data("send_msg", cls.case_list)
+        cls.my_excel.save_list_data("register", cls.case_list)
 
     @data(*cases)
-    def test_sendMCode(self, case):
+    def test_UnRegister(self, case):
         print(case)
         Logging.info("测试用例名称为：{}".format(case["title"]))
-        is_success, response = TestSendMCode.request.request(case["url"], case["method_name"], eval(case["data"]))
+        is_success, response = TestUnRegister.request.request(case["url"], case["method_name"], eval(case["data"]))
         if is_success:
             case["actual"] = response["retCode"]
             case["result"] = str(response)
-            TestSendMCode.case_list.append(case)
+            TestUnRegister.case_list.append(case)
             Logging.info("response：{}".format(str(response)))
             try:
                 self.assertEqual(int(case["expected"]), int(response["retCode"]))
@@ -53,7 +53,7 @@ class TestSendMCode(unittest.TestCase):
             if isinstance(response, WebFault):
                 case["actual"] = response.fault.faultcode  # 错误代码
                 case["result"] = response.fault.faultstring  # 错误描述
-                TestSendMCode.case_list.append(case)
+                TestUnRegister.case_list.append(case)
                 Logging.info("response：{}".format(str(response.fault)))
                 try:
                     self.assertEqual(str(case["expected"]), response.fault.faultcode)
