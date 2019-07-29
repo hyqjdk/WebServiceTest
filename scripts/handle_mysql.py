@@ -4,6 +4,7 @@
 # @Author  : YoYo
 import pymysql
 from scripts.handle_config import ConfigLoader
+from scripts.handle_context import Context
 
 
 class HandleMySql:
@@ -14,7 +15,7 @@ class HandleMySql:
         self.conn = pymysql.connect(host=config.get_value("mysql", "host"),
                                     user=config.get_value("mysql", "user"),
                                     password=config.get_value("mysql", "password"),
-                                    db=config.get_value("mysql", "db"),
+                                    db=getattr(Context, "db_name"),
                                     port=config.get_int("mysql", "port"),
                                     charset="utf8",
                                     cursorclass=pymysql.cursors.DictCursor)

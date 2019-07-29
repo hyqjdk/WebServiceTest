@@ -9,18 +9,4 @@ from scripts.constant_url import ACCOUNTS_PATH
 class Accounts:
     """测试基础账号"""
     config = ConfigLoader(ACCOUNTS_PATH)
-    normal_user = config.get_value("accounts", "normal_user")
-    normal_pwd = config.get_value("accounts", "normal_pwd")
-    normal_id = config.get_value("accounts", "normal_id")
-
-    # 管理员账号
-    admin_user = config.get_value("accounts", "admin_user")
-    admin_pwd = config.get_value("accounts", "admin_pwd")
-    admin_id = config.get_value("accounts", "admin_id")
-
-    # 投资人账号
-    invest_user = config.get_value("accounts", "invest_user")
-    invest_pwd = config.get_value("accounts", "invest_pwd")
-    invest_id = config.get_value("accounts", "invest_id")
-
-    base_url = config.get_value("url", "base_url")
+    register_phone = config.get_value("account", "register_account")

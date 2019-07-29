@@ -5,20 +5,24 @@
 
 import re
 
-from scripts.handle_mobilephone import MobilePhoneUtils
-from scripts.base_account_data import Accounts
+from scripts.constant_url import ACCOUNTS_PATH
+from scripts.handle_config import ConfigLoader
+from scripts.handle_idcard import IdCardUtils
 
 
 class Context:
     """获取测试数据参数化类"""
     # 获取验证码
-    code_db_id = r'\$\{db_id\}' # 哪个数据库下
-    code_table_id = r'\$\{table_id\}' # 哪个table下的
+    code_db_id = r'\$\{db_id\}'  # 哪个数据库下
+    code_table_id = r'\$\{table_id\}'  # 哪个table下的
     register_phone = r'\$\{register_phone\}'
 
     # 验证码
-    verify_code = r'\$\{verify_code\}'
-    #select Fverify_code from sms_db_${db_id}.t_mvcode_info_${table_id} WHERE Fmobile_no = ${register_phone}
+    verify_code_pattern = r'\$\{verify_code\}'
+    # 身份证
+    id_card_pattern = r'\${\cre_id\}'
+    # uid
+    user_id_pattern = r'\$\{user_id\}'
 
     @classmethod
     def verify_code_replace(cls, pattern_data):
@@ -27,259 +31,80 @@ class Context:
         :param pattern_data: 传入的所有数据
         :return:
         """
-        if re.search(cls.verify_code, pattern_data):
-            verify_code = getattr(Context, "verify_code")
-            pattern_data = re.sub(cls.verify_code, verify_code, pattern_data)
+        if re.search(cls.verify_code_pattern, pattern_data) and hasattr(Context, "verify_code"):
+            code = getattr(Context, "verify_code")
+            pattern_data = re.sub(cls.verify_code_pattern, str(code), pattern_data)
         return pattern_data
 
     @classmethod
-    def sendMCode_parameterization(cls, mobile_phone, data):
+    def id_card_replace(cls, pattern_data):
+        """
+         替换验证码
+        :param pattern_data: 传入的所有数据
+        :return:
+        """
+        if re.search(cls.id_card_pattern, pattern_data):
+            card_id = IdCardUtils.get_random_id_card()
+            pattern_data = re.sub(cls.id_card_pattern, str(card_id), pattern_data)
+        return pattern_data
+
+    @classmethod
+    def user_id_replace(cls, pattern_data):
+        """
+         替换验证码
+        :param pattern_data: 传入的所有数据
+        :return:
+        """
+        if re.search(cls.user_id_pattern, pattern_data) and hasattr(Context, "f_uid"):
+            id = getattr(Context, "f_uid")
+            pattern_data = re.sub(cls.user_id_pattern, str(id), pattern_data)
+        return pattern_data
+
+    @classmethod
+    def sendMCode_parameterization(cls, data):
         """
         替换
-        :param mobile_phone: 手机号
         :param data: 原始数据
         :return:
         """
+        if re.search(cls.register_phone, data):
+            config = ConfigLoader()
+            mobile_phone = config.get_value("account", "register_account")
+            data = re.sub(cls.register_phone, mobile_phone, data)
+        return data
+
+    @classmethod
+    def register_parameterization(cls, data):
+        """
+        注册部分参数化
+        :param data: 原始数据 select Fverify_code from sms_db_${db_id}.t_mvcode_info_${table_id} WHERE Fmobile_no = ${register_phone}
+        :return:
+        """
+        config = ConfigLoader(ACCOUNTS_PATH)
+        mobile_phone = config.get_value("account", "register_account")
+        setattr(Context, "db_name", "sms_db_" + mobile_phone[-2:])
+        if re.search(cls.register_phone, data):
+            data = re.sub(cls.register_phone, mobile_phone, data)
         if re.search(cls.code_db_id, data):
-            data = re.sub(cls.code_db_id, mobile_phone., data)
-        if re.search(cls.invest_user_pwd, data):
-            invest_pwd = Accounts.invest_pwd
-            data = re.sub(cls.invest_user_pwd, invest_pwd, data)
-        return data
-        return data
-
-    @classmethod
-    def register_parameterization(cls, data):
-        """
-        注册部分参数化
-        :param data: 原始数据
-        :return:
-        """
+            data = re.sub(cls.code_db_id, mobile_phone[-2:], data)
+        if re.search(cls.code_table_id, data):
+            data = re.sub(cls.code_table_id, mobile_phone[-3], data)
         data = cls.verify_code_replace(data)
-        data = cls.exist_tel_replace(data)
-        return data
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @classmethod
-    def not_exist_tel_replace(cls, data):
-        """
-        替换成需要的数据显示类型
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.not_exist_tel_pattern, data):
-            not_exist_tel = MobilePhoneUtils.create_not_exist_mobile()
-            data = re.sub(cls.not_exist_tel_pattern, not_exist_tel, data)
         return data
 
     @classmethod
-    def exist_tel_replace(cls, data):
+    def verifyUserAuth_parameterization(cls, data):
         """
-        替换成需要的数据显示类型
+        实名认证参数化
         :param data: 原始数据
         :return:
         """
-        if re.search(cls.exist_tel_pattern, data):
-            exist_tel = MobilePhoneUtils.create_exist_mobile()
-            data = re.sub(cls.exist_tel_pattern, exist_tel, data)
+        data = cls.user_id_replace(data)
+        data = cls.id_card_replace(data)
         return data
 
-    @classmethod
-    def exist_member_id_replace(cls, member_id, data):
-        """
-        替换成需要的数据显示类型
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.exist_tel_pattern, data):
-            data = re.sub(cls.exist_id_pattern, member_id, data)
-        return data
-
-    @classmethod
-    def common_tel_replace(cls, data):
-        """
-        替换成普通用户的账户
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.exist_tel_pattern, data):
-            exist_tel = MobilePhoneUtils.get_common_mobile()
-            data = re.sub(cls.exist_tel_pattern, exist_tel, data)
-        return data
-
-    @classmethod
-    def invest_tel_replace(cls, data):
-        """
-        替换成“投资人”的账户
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.exist_tel_pattern, data):
-            exist_tel = Accounts.invest_user
-            data = re.sub(cls.exist_tel_pattern, exist_tel, data)
-        return data
-
-    @classmethod
-    def normal_tel_replace(cls, data):
-        """
-        替换成“投资人”的账户
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.exist_tel_pattern, data):
-            exist_tel = Accounts.normal_user
-            data = re.sub(cls.exist_tel_pattern, exist_tel, data)
-        return data
-
-    @classmethod
-    def loan_id_replace(cls, data):
-        """
-        替换成“投资人”的账户
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.loan_id, data):
-            # loan_id = getattr(Context, "loan_id")
-            loan_id = Context.loan_id
-            data = re.sub(cls.loan_id, loan_id, data)
-        return data
-
-    @classmethod
-    def admin_tel_replace(cls, data):
-        """
-        替换成“管理员”的账户
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.admin_user_tel, data):
-            admin_id = Accounts.admin_user
-            data = re.sub(cls.admin_user_tel, admin_id, data)
-        return data
-
-    @classmethod
-    def borrow_tel_replace(cls, data):
-        """
-        替换成“借款人”的账户
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.borrow_user_tel, data):
-            borrow_user_tel = Accounts.normal_id
-            data = re.sub(cls.borrow_user_tel, borrow_user_tel, data)
-        return data
-
-    @classmethod
-    def invest_replace(cls, data):
-        """
-        替换成“借款人”的账户
-        :param data: 原始数据
-        :return:
-        """
-        if re.search(cls.invest_user_id, data):
-            invest_user = Accounts.invest_user
-            data = re.sub(cls.invest_user_id, invest_user, data)
-        if re.search(cls.invest_user_pwd, data):
-            invest_pwd = Accounts.invest_pwd
-            data = re.sub(cls.invest_user_pwd, invest_pwd, data)
-        return data
-
-    @classmethod
-    def register_parameterization(cls, data):
-        """
-        注册部分参数化
-        :param data: 原始数据
-        :return:
-        """
-        data = cls.not_exist_tel_replace(data)
-        data = cls.exist_tel_replace(data)
-        return data
-
-    @classmethod
-    def login_parameterization(cls, data):
-        """
-        登陆部分参数化
-        :param data: 原始数据
-        :return:
-        """
-        data = cls.exist_tel_replace(data)
-        return data
-
-    @classmethod
-    def recharge_parameterization(cls, data):
-        """
-        充值部分参数化
-        :param data: 原始数据
-        :return:
-        """
-        data = cls.common_tel_replace(data)
-        return data
-
-    @classmethod
-    def recharge_parameterization(cls, member_id, data):
-        """
-        充值部分参数化
-        :param data: 原始数据
-        :return:
-        """
-        data = cls.normal_tel_replace(data)
-        data = cls.exist_member_id_replace(member_id, data)
-        return data
-
-    @classmethod
-    def add_parameterization(cls, member_id, data):
-        """
-        借款部分参数化
-        :param data: 原始数据
-        :return:
-        """
-        data = cls.normal_tel_replace(data)
-        data = cls.exist_member_id_replace(member_id, data)
-        return data
-
-    @classmethod
-    def invest_parameterization(cls, data):
-        """
-        投资、竞标部分参数化
-        :param data: 原始数据
-        :return:
-        """
-        data = cls.admin_tel_replace(data)
-        data = cls.borrow_tel_replace(data)
-        data = cls.loan_id_replace(data)
-        data = cls.invest_replace(data)
-        return data
-
-
-if __name__ == '__main__':
-    data = '{"mobilephone":"${not_exist_tel}","password":"123456","regname":"yoyo"}'
-    print(Context.register_parameterization(data))
+# if __name__ == '__main__':
+# setattr(Context, "verify_code", str("11456"))
+# data = '{"verify_code": "${verify_code}", "user_id": "yoyo", "channel_id": "1", "pwd": "123456", "mobile": "15900743992","ip": "129.45.6.7"}'
+# new_data = Context.verify_code_replace(data)
+# print(new_data)
