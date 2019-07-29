@@ -20,7 +20,7 @@ class Context:
     # 验证码
     verify_code_pattern = r'\$\{verify_code\}'
     # 身份证
-    id_card_pattern = r'\${\cre_id\}'
+    id_card_pattern = r'\$\{cre_id\}'
     # uid
     user_id_pattern = r'\$\{user_id\}'
 

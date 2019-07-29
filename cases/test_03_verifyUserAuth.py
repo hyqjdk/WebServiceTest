@@ -46,7 +46,6 @@ class TestVerifyUserAuth(unittest.TestCase):
         Logging.info("测试用例名称为：{}".format(case["title"]))
         check_sql = case["check_sql"]
         if check_sql:
-            check_sql = Context.verifyUserAuth_parameterization(check_sql)
             mysql_data = TestVerifyUserAuth.handle_sql.get_value(check_sql)
             if mysql_data:
                 f_uid = mysql_data["Fuid"]
